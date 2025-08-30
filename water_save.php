@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Australia/Sydney');
 header('Content-Type: application/json');
 $path = __DIR__ . '/water_state.json';
 
