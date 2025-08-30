@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Water Meter</title>
+	<style>
+		:root{
+			--bg:#071022;
+			--panel:#071420;
+			--accent:#18b4ff;
+			--accent-strong:#00a3e6;
+			--muted:#93a4b1;
+			--glass: rgba(255,255,255,0.03);
+		}
+		html,body{height:100%; box-sizing:border-box;}
+		body{
+			margin:0; font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+			background: #00ff00;
+			color: #d9eef8; display:flex; align-items:center; justify-content:center; padding:0; min-height:100vh;
+		}
+		.panel{
+			width:360px; max-width:94vw; padding:22px; border-radius:16px;
+			background: transparent;
+			box-shadow: none;
+			backdrop-filter: none;
+			border: none;
+			margin:auto;
+		}
+		.meter-wrap{display:flex; gap:20px; align-items:center; margin-top:18px}
+		.meter{
+			position:relative; width:72px; height:280px; border-radius:42px; padding:12px;
+			display:flex; align-items:flex-end; justify-content:center; overflow:visible;
+			background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.008));
+			box-shadow: none;
+		}
+		.meter-inner{
+			position:relative; width:44px; height:100%; border-radius:34px; overflow:hidden;
+			background: linear-gradient(180deg,#0b2a33, #042022); border:1px solid rgba(255,255,255,0.03);
+			box-shadow: none;
+		}
+		.meter-inner::before{
+			content:''; position:absolute; inset:-8px; border-radius:40px; background:transparent; pointer-events:none;
+			box-shadow: none;
+			opacity:0.0;
+		}
+		.meter-inner.full::before{
+			box-shadow: 0 0 40px rgba(24,180,255,0.22), 0 0 80px rgba(24,180,255,0.08);
+		}
+		.meter-inner::after{
+			content:''; position:absolute; left:-6px; right:-6px; bottom:0; height:var(--fill,0%); border-radius:28px; pointer-events:none;
+			background: linear-gradient(180deg, rgba(24,180,255,0.14), rgba(24,180,255,0.06));
+			box-shadow: 0 0 28px rgba(24,180,255,0.18);
+			transition: height 850ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms ease, opacity 220ms ease;
+			opacity:0.9;
+		}
+		.meter-inner.hasFill::after{ opacity:0.95 }
+		.meter-inner.full::after{ box-shadow: 0 0 40px rgba(24,180,255,0.28), 0 0 100px rgba(24,180,255,0.08) }
+		.meter-fill{
+			position:absolute; left:0; right:0; bottom:0; height:0%;
+			background: linear-gradient(180deg, rgba(24,180,255,0.18) 0%, rgba(3,86,110,0.12) 50%, rgba(2,40,52,0.06) 100%);
+			box-shadow: none;
+			transition: height 850ms cubic-bezier(.2,.9,.3,1);
+		}
+		.meter-fill.full{ box-shadow: none }
+		.meter-fill::after{
+			content:''; position:absolute; left:0; right:0; top:0; height:8%; background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+		}
+		.drop{
+			position:absolute; width:48px; height:48px; left:50%; transform:translateX(-50%); bottom:calc(var(--drop-bottom, 0%));
+			pointer-events:none; transition:bottom 850ms cubic-bezier(.2,.9,.3,1), transform 380ms cubic-bezier(.2,.85,.3,1); filter:none;
+			display:flex; align-items:center; justify-content:center;
+		}
+		.drop svg{width:100%; height:100%; display:block}
+		.drop .fill{fill:transparent; transition:fill 320ms ease, transform 320ms ease}
+		.drop .outline{fill:none; stroke:rgba(255,255,255,0.85); stroke-width:1.6; transition:stroke 300ms ease}
+		.drop.blue .fill{fill:var(--accent)}
+		.drop.blue .outline{stroke:rgba(0,110,180,0.95)}
+		.drop.small{transform:translateX(-50%) scale(0.92)}
+		.drop.full{ transform: translateX(-50%) translateY(-2px) scale(1.04) }
+		.controls{flex:1}
+		.controls .percent{font-size:34px; font-weight:800; color:var(--accent); text-align:right}
+		.percent.full{ color: var(--accent-strong); text-shadow: 0 6px 24px rgba(0,140,200,0.12) }
+		.slider{width:100%; margin-top:10px}
+		input[type=range]{width:100%; -webkit-appearance:none; background:transparent}
+		input[type=range]::-webkit-slider-runnable-track{height:8px; background:linear-gradient(90deg,#07384a, rgba(24,180,255,0.18)); border-radius:999px}
+		input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; margin-top:-6px; width:16px; height:16px; border-radius:50%; background:var(--accent); box-shadow:0 4px 14px rgba(24,180,255,0.26)}
+		input[type=range]:focus{outline:none}
+		.buttons{display:flex; gap:8px; margin-top:12px}
+		button{background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted); padding:8px 10px; border-radius:10px; cursor:pointer}
+		button.primary{background:linear-gradient(90deg,var(--accent), #6dd5fa); color:#022; font-weight:700; box-shadow:none}
+		#inc[disabled]{ opacity:0.36; pointer-events:none; transform:none; box-shadow:none; }
+		@keyframes pop { 0%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.08)} 100%{transform:translateX(-50%) scale(1)} }
+		.drop.pop{ animation: pop 360ms cubic-bezier(.2,.9,.3,1); }
+		.meta{margin-top:12px; font-size:12px; color:var(--muted)}
+		.sr-only{position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+	</style>
+</head>
+<body>
+	<div class="panel">
+		<div class="meter-wrap">
+			<div class="meter" aria-hidden="true">
+				<div class="meter-inner" id="meterInner">
+					<div class="meter-fill" id="meterFill" style="height:0%"></div>
+				</div>
+				<div class="drop" id="drop" style="--drop-bottom:0%">
+					<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+						<path class="fill" d="M32 6c0 0-14 14-14 24a14 14 0 0028 0C46 20 32 6 32 6z" />
+						<path class="outline" d="M32 6c0 0-14 14-14 24a14 14 0 0028 0C46 20 32 6 32 6z" />
+					</svg>
+				</div>
+			</div>
+		<div class="controls">
+			<div style="display:flex;align-items:center;justify-content:space-between" class="sr-only">
+				<div>Level</div>
+				<div id="srPercent">Current level</div>
+			</div>
+			<!-- Visible percentage shown above the buttons -->
+			<div style="display:flex;align-items:center;justify-content:flex-end">
+				<div class="percent" id="percentText">0%</div>
+			</div>
+			<div class="buttons">
+				<button id="inc1" class="primary inc-btn">+1</button>
+				<button id="inc5" class="primary inc-btn">+5</button>
+				<button id="inc" class="primary inc-btn">+10</button>
+				<button id="reset" class="primary">Reset</button>
+			</div>
+		</div>
+		</div>
+	</div>
+	<script>
+		const meterFill = document.getElementById('meterFill');
+		const meterInner = document.getElementById('meterInner');
+		const drop = document.getElementById('drop');
+		const percentText = document.getElementById('percentText');
+		const incButtons = Array.from(document.querySelectorAll('.inc-btn'));
+		const inc1 = document.getElementById('inc1');
+		const inc5 = document.getElementById('inc5');
+		const inc10 = document.getElementById('inc');
+		function clamp(v){ return Math.max(0, Math.min(100, Math.round(v))); }
+		let _saveTimeout = null;
+		function savePercentDebounced(p){
+			clearTimeout(_saveTimeout);
+			_saveTimeout = setTimeout(()=>{
+				fetch('water_save.php', {
+					method:'POST',
+					headers: {'Content-Type':'application/json'},
+					body: JSON.stringify({percent: p})
+				}).catch(()=>{/* fail silently */});
+			}, 350);
+		}
+		function setLevel(targetPercent){
+			const p = clamp(targetPercent);
+			percentText.textContent = p + '%';
+			meterFill.style.height = p + '%';
+			meterInner.style.setProperty('--fill', p + '%');
+					if(p >= 100){
+					drop.style.setProperty('--drop-bottom', '86%');
+				drop.classList.add('blue','full');
+				meterInner.classList.add('full');
+				meterFill.classList.add('full');
+				percentText.classList.add('full');
+			} else {
+				const dropOffsetPct = 6;
+				const dropBottom = Math.max(0, p - dropOffsetPct);
+				drop.style.setProperty('--drop-bottom', dropBottom + '%');
+				drop.classList.remove('blue','full');
+				meterInner.classList.remove('full');
+				meterFill.classList.remove('full');
+				percentText.classList.remove('full');
+			}
+			drop.classList.add('small');
+			clearTimeout(drop._t);
+			drop._t = setTimeout(()=> drop.classList.remove('small'), 320);
+			// Toggle disabled state for increment buttons individually
+			incButtons.forEach(b => {
+				const delta = parseInt(b.textContent.replace('+', ''));
+				if (p + delta > 100) {
+					b.setAttribute('disabled', '');
+				} else {
+					b.removeAttribute('disabled');
+				}
+			});
+			if(p > 0) meterInner.classList.add('hasFill'); else meterInner.classList.remove('hasFill');
+			// Persist today's percent
+			savePercentDebounced(p);
+			if(p >= 100) meterInner.classList.add('full'); else meterInner.classList.remove('full');
+		}
+		// Generic handler to increment by delta and play the pop animation
+		function handleInc(delta){
+			const cur = Number(percentText.textContent.replace('%','')) || 0;
+			setLevel(cur + delta);
+			drop.classList.remove('pop');
+			void drop.offsetWidth;
+			drop.classList.add('pop');
+		}
+		inc1.addEventListener('click', ()=> handleInc(1));
+		inc5.addEventListener('click', ()=> handleInc(5));
+		inc10.addEventListener('click', ()=> handleInc(10));
+		document.getElementById('reset').addEventListener('click', ()=> setLevel(0));
+		// Try to load saved percent for today
+		fetch('water_save.php').then(r => r.json()).then(data => {
+			if (data && typeof data.percent === 'number'){
+				setLevel(data.percent);
+			} else {
+				setLevel(0);
+			}
+		}).catch(()=> setLevel(0));
+	</script>
+</body>
+</html>
