@@ -1,12 +1,14 @@
 # Water Percentage Meter
 
-A simple, elegant web-based application for tracking daily water intake percentage. Features a visual water meter with smooth animations, increment buttons, and persistent storage of daily progress.
+A simple, elegant web-based application for tracking daily water intake percentage. Features a visual water meter with smooth animations, increment/decrement buttons, automatic daily resets, historical data viewing, and persistent storage of daily progress.
 
 ## Features
 
 - **Visual Water Meter**: Animated meter that fills up as you track your water intake
-- **Easy Controls**: Buttons to increment by 1%, 5%, or 10%
-- **Reset Functionality**: Quickly reset the meter to 0%
+- **Easy Controls**: Buttons to increment (+1, +5, +10) or decrement (-1) your water intake
+- **Automatic Daily Reset**: Meter automatically resets to 0% at the start of each new day
+- **Real-time Sync**: Periodically checks and syncs with stored data to ensure consistency
+- **View Past Records**: Modal popup showing historical daily progress in a table format
 - **Persistent Storage**: Saves your daily progress to a JSON file
 - **Responsive Design**: Works on desktop and mobile devices
 - **Smooth Animations**: Fluid transitions and visual feedback
@@ -28,10 +30,12 @@ A simple, elegant web-based application for tracking daily water intake percenta
 
 1. Open `water.php` in your web browser
 2. Use the +1, +5, or +10 buttons to increment your water intake percentage
-3. The meter will visually fill up and animate accordingly
-4. Your progress is automatically saved for the current day
-5. Use the Reset button to start over
-6. The app will remember your progress when you return
+3. Use the -1 button to decrement if needed
+4. The meter will visually fill up and animate accordingly
+5. Your progress is automatically saved for the current day
+6. The app automatically resets to 0% at the start of each new day
+7. Click "View Past" to see a table of your historical daily records
+8. The app periodically syncs to ensure data consistency
 
 ## File Structure
 
@@ -44,13 +48,28 @@ A simple, elegant web-based application for tracking daily water intake percenta
 ## API Endpoints
 
 ### GET /water_save.php
-Retrieves the current day's water percentage.
+Retrieves the current day's water percentage and current date.
 
 **Response:**
 ```json
 {
-  "date": "2025-08-30",
-  "percent": 75
+  "date": "2025-09-03",
+  "percent": 75,
+  "current_date": "2025-09-03"
+}
+```
+
+### GET /water_save.php?all=true
+Retrieves all historical records.
+
+**Response:**
+```json
+{
+  "records": {
+    "2025-09-03": 75,
+    "2025-09-02": 100,
+    "2025-09-01": 80
+  }
 }
 ```
 
@@ -68,7 +87,7 @@ Saves the water percentage for the current day.
 ```json
 {
   "ok": true,
-  "date": "2025-08-30",
+  "date": "2025-09-03",
   "percent": 75
 }
 ```
