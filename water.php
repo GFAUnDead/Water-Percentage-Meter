@@ -38,6 +38,21 @@
 			position:relative; width:44px; height:100%; border-radius:34px; overflow:hidden;
 			background: linear-gradient(180deg,#0b2a33, #042022); border:1px solid rgba(255,255,255,0.03);
 			box-shadow: none;
+			display: flex;
+			align-items: flex-end;
+			justify-content: center;
+		}
+		.meter-percentage {
+			position: absolute;
+			bottom: 10px;
+			left: 50%;
+			transform: translateX(-50%);
+			color: rgba(255, 255, 255, 0.8);
+			font-size: 12px;
+			font-weight: bold;
+			text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+			z-index: 2;
+			pointer-events: none;
 		}
 		.meter-inner::before{
 			content:''; position:absolute; inset:-8px; border-radius:40px; background:transparent; pointer-events:none;
@@ -110,6 +125,7 @@
 		<div class="meter-wrap">
 			<div class="meter" aria-hidden="true">
 				<div class="meter-inner" id="meterInner">
+					<div class="meter-percentage" id="meterPercentage">0%</div>
 					<div class="meter-fill" id="meterFill" style="height:0%"></div>
 				</div>
 				<div class="drop" id="drop" style="--drop-bottom:0%">
@@ -160,6 +176,7 @@
 		const meterInner = document.getElementById('meterInner');
 		const drop = document.getElementById('drop');
 		const percentText = document.getElementById('percentText');
+		const meterPercentage = document.getElementById('meterPercentage');
 		const incButtons = Array.from(document.querySelectorAll('.inc-btn'));
 		const decButtons = Array.from(document.querySelectorAll('.dec-btn'));
 		const inc1 = document.getElementById('inc1');
@@ -181,6 +198,20 @@
 		function setLevel(targetPercent){
 			const p = clamp(targetPercent);
 			percentText.textContent = p + '%';
+			meterPercentage.textContent = p + '%';
+			
+			// Position the percentage text based on water level
+			if (p === 0) {
+				meterPercentage.style.bottom = '50%';
+				meterPercentage.style.transform = 'translateX(-50%) translateY(50%)';
+			} else if (p < 20) {
+				meterPercentage.style.bottom = Math.max(p + 5, 15) + 'px';
+				meterPercentage.style.transform = 'translateX(-50%)';
+			} else {
+				meterPercentage.style.bottom = (p - 8) + 'px';
+				meterPercentage.style.transform = 'translateX(-50%)';
+			}
+			
 			meterFill.style.height = p + '%';
 			meterInner.style.setProperty('--fill', p + '%');
 					if(p >= 100){
