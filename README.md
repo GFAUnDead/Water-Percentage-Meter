@@ -46,6 +46,7 @@ A simple, elegant web-based application for tracking daily water intake percenta
 - `water_state.json` - Data storage file (created automatically)
 - `README.md` - This file
 - `LICENSE` - Project license
+- `.gitattributes` - Git attributes for language detection and text normalization
 
 ## API Endpoints
 
@@ -118,6 +119,15 @@ This project is open source and available under the terms of the LICENSE file in
 ## Contributing
 
 Feel free to submit issues, feature requests, or pull requests to improve this project!
+
+## Git Configuration
+
+This repository includes a `.gitattributes` file that:
+- Ensures proper language detection for GitHub (PHP for .php files, Markdown for .md files)
+- Configures automatic text file detection and line ending normalization
+- Helps maintain consistent file handling across different operating systems
+
+The language detection ensures that GitHub correctly identifies and highlights the code in this mixed PHP/JavaScript/HTML project.
 
 ## Demo
 

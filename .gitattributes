@@ -1,2 +1,23 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Language detection for GitHub
+# PHP files
+*.php linguist-language=PHP
+
+# Markdown files
+*.md linguist-language=Markdown
+
+# License files
+LICENSE linguist-language=Text
+
+# JSON files
+*.json linguist-language=JSON
+
+# Ensure all files are detectable
+* linguist-detectable=true
+
+# Exclude common development files from language statistics
+.gitattributes linguist-detectable=false
+.gitignore linguist-detectable=false
+README.md linguist-detectable=true
