@@ -110,14 +110,13 @@
 		.meta{margin-top:12px; font-size:12px; color:var(--muted)}
 		.sr-only{position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
 		/* Modal styles */
-		.modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
-		.modal-content { background-color: var(--panel); margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 16px; }
+		.modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+		.modal-content { background-color: var(--panel); margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 16px; position: relative; }
 		.close { color: var(--muted); float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
 		.close:hover { color: var(--accent); }
 		#pastTable { width: 100%; border-collapse: collapse; margin-top: 10px; }
 		#pastTable th, #pastTable td { border: 1px solid rgba(255,255,255,0.1); padding: 8px; text-align: left; }
 		#pastTable th { background-color: var(--bg); color: var(--accent); }
-	
 	</style>
 </head>
 <body>
