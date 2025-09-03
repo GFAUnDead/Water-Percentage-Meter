@@ -89,11 +89,20 @@
 		.buttons{display:flex; gap:8px; margin-top:12px}
 		button{background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted); padding:8px 10px; border-radius:10px; cursor:pointer}
 		button.primary{background:linear-gradient(90deg,var(--accent), #6dd5fa); color:#022; font-weight:700; box-shadow:none}
-		#inc[disabled]{ opacity:0.36; pointer-events:none; transform:none; box-shadow:none; }
+		.inc-btn[disabled], .dec-btn[disabled]{ opacity:0.36; pointer-events:none; transform:none; box-shadow:none; }
 		@keyframes pop { 0%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.08)} 100%{transform:translateX(-50%) scale(1)} }
 		.drop.pop{ animation: pop 360ms cubic-bezier(.2,.9,.3,1); }
 		.meta{margin-top:12px; font-size:12px; color:var(--muted)}
 		.sr-only{position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+		/* Modal styles */
+		.modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+		.modal-content { background-color: var(--panel); margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 16px; }
+		.close { color: var(--muted); float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+		.close:hover { color: var(--accent); }
+		#pastTable { width: 100%; border-collapse: collapse; margin-top: 10px; }
+		#pastTable th, #pastTable td { border: 1px solid rgba(255,255,255,0.1); padding: 8px; text-align: left; }
+		#pastTable th { background-color: var(--bg); color: var(--accent); }
+	
 	</style>
 </head>
 <body>
@@ -123,9 +132,27 @@
 				<button id="inc1" class="primary inc-btn">+1</button>
 				<button id="inc5" class="primary inc-btn">+5</button>
 				<button id="inc" class="primary inc-btn">+10</button>
-				<button id="reset" class="primary">Reset</button>
+				<button id="dec1" class="primary dec-btn">-1</button>
+				<button id="viewPast" class="primary">View Past</button>
 			</div>
 		</div>
+		</div>
+	</div>
+	<!-- Modal for past records -->
+	<div id="pastModal" class="modal">
+		<div class="modal-content">
+			<span class="close">&times;</span>
+			<h3>Past Records</h3>
+			<table id="pastTable">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Percentage</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
 		</div>
 	</div>
 	<script>
@@ -134,9 +161,11 @@
 		const drop = document.getElementById('drop');
 		const percentText = document.getElementById('percentText');
 		const incButtons = Array.from(document.querySelectorAll('.inc-btn'));
+		const decButtons = Array.from(document.querySelectorAll('.dec-btn'));
 		const inc1 = document.getElementById('inc1');
 		const inc5 = document.getElementById('inc5');
 		const inc10 = document.getElementById('inc');
+		const dec1 = document.getElementById('dec1');
 		function clamp(v){ return Math.max(0, Math.min(100, Math.round(v))); }
 		let _saveTimeout = null;
 		function savePercentDebounced(p){
@@ -181,6 +210,15 @@
 					b.removeAttribute('disabled');
 				}
 			});
+			// Toggle disabled state for decrement buttons individually
+			decButtons.forEach(b => {
+				const delta = parseInt(b.textContent.replace('-', ''));
+				if (p - delta < 0) {
+					b.setAttribute('disabled', '');
+				} else {
+					b.removeAttribute('disabled');
+				}
+			});
 			if(p > 0) meterInner.classList.add('hasFill'); else meterInner.classList.remove('hasFill');
 			// Persist today's percent
 			savePercentDebounced(p);
@@ -194,18 +232,69 @@
 			void drop.offsetWidth;
 			drop.classList.add('pop');
 		}
+		// Generic handler to decrement by delta and play the pop animation
+		function handleDec(delta){
+			const cur = Number(percentText.textContent.replace('%','')) || 0;
+			setLevel(cur - delta);
+			drop.classList.remove('pop');
+			void drop.offsetWidth;
+			drop.classList.add('pop');
+		}
 		inc1.addEventListener('click', ()=> handleInc(1));
 		inc5.addEventListener('click', ()=> handleInc(5));
 		inc10.addEventListener('click', ()=> handleInc(10));
-		document.getElementById('reset').addEventListener('click', ()=> setLevel(0));
+		dec1.addEventListener('click', ()=> handleDec(1));
+		// View Past button
+		document.getElementById('viewPast').addEventListener('click', ()=>{
+			fetch('water_save.php?all=true').then(r => r.json()).then(data => {
+				if (data && data.records){
+					const tbody = document.querySelector('#pastTable tbody');
+					tbody.innerHTML = '';
+					// Sort dates descending
+					const sortedDates = Object.keys(data.records).sort((a,b)=> new Date(b) - new Date(a));
+					sortedDates.forEach(date => {
+						const percent = data.records[date];
+						const row = tbody.insertRow();
+						row.insertCell(0).textContent = date;
+						row.insertCell(1).textContent = percent + '%';
+					});
+					document.getElementById('pastModal').style.display = 'block';
+				}
+			}).catch(()=>{});
+		});
+		// Close modal
+		document.querySelector('.close').addEventListener('click', ()=>{
+			document.getElementById('pastModal').style.display = 'none';
+		});
+		window.addEventListener('click', (event)=>{
+			if (event.target === document.getElementById('pastModal')) {
+				document.getElementById('pastModal').style.display = 'none';
+			}
+		});
 		// Try to load saved percent for today
 		fetch('water_save.php').then(r => r.json()).then(data => {
-			if (data && typeof data.percent === 'number'){
+			if (data && data.date === data.current_date && typeof data.percent === 'number'){
 				setLevel(data.percent);
 			} else {
 				setLevel(0);
 			}
 		}).catch(()=> setLevel(0));
+		// Periodically check if date has changed and reset if so, also sync with saved level
+		function checkDateAndReset(){
+			fetch('water_save.php').then(r => r.json()).then(data => {
+				if (data){
+					const currentLevel = Number(percentText.textContent.replace('%','')) || 0;
+					if (data.date !== data.current_date){
+						// Date changed, reset to 0
+						setLevel(0);
+					} else if (typeof data.percent === 'number' && currentLevel !== data.percent){
+						// Date same but level mismatch, sync to saved
+						setLevel(data.percent);
+					}
+				}
+			}).catch(()=>{});
+		}
+		setInterval(checkDateAndReset, 60000); // Check every minute
 	</script>
 </body>
 </html>

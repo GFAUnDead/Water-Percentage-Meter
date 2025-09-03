@@ -23,8 +23,13 @@ $today = date('Y-m-d');
 
 if ($method === 'GET'){
     $store = load_store($path);
-    $percent = array_key_exists($today, $store) ? $store[$today] : null;
-    echo json_encode(['date' => $today, 'percent' => $percent]);
+    if (isset($_GET['all']) && $_GET['all'] === 'true'){
+        // Return all records
+        echo json_encode(['records' => $store]);
+    } else {
+        $percent = array_key_exists($today, $store) ? $store[$today] : null;
+        echo json_encode(['date' => $today, 'percent' => $percent, 'current_date' => $today]);
+    }
     exit;
 }
 
