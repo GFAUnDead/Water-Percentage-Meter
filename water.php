@@ -91,6 +91,8 @@
 		.drop .outline{fill:none; stroke:rgba(255,255,255,0.85); stroke-width:1.6; transition:stroke 300ms ease}
 		.drop.blue .fill{fill:var(--accent)}
 		.drop.blue .outline{stroke:rgba(0,110,180,0.95)}
+		.drop.green .fill{fill:#00ff00}
+		.drop.green .outline{stroke:#008000}
 		.drop.small{transform:translateX(-50%) scale(0.92)}
 		.drop.full{ transform: translateX(-50%) translateY(-2px) scale(1.04) }
 		.controls{flex:1}
@@ -186,7 +188,7 @@
 		const dec1 = document.getElementById('dec1');
 		const dec5 = document.getElementById('dec5');
 		const dec10 = document.getElementById('dec10');
-		function clamp(v){ return Math.max(0, Math.min(100, Math.round(v))); }
+		function clamp(v){ return Math.max(0, Math.round(v)); }
 		let _saveTimeout = null;
 		function savePercentDebounced(p){
 			clearTimeout(_saveTimeout);
@@ -215,11 +217,19 @@
 				meterPercentage.style.transform = 'translateX(-50%)';
 			}
 			
-			meterFill.style.height = p + '%';
-			meterInner.style.setProperty('--fill', p + '%');
-					if(p >= 100){
+			meterFill.style.height = Math.min(p, 100) + '%';
+			meterInner.style.setProperty('--fill', Math.min(p, 100) + '%');
+					if(p > 100){
 					drop.style.setProperty('--drop-bottom', '86%');
+				drop.classList.add('green','full');
+				drop.classList.remove('blue');
+				meterInner.classList.add('full');
+				meterFill.classList.add('full');
+				percentText.classList.add('full');
+			} else if(p >= 100){
+				drop.style.setProperty('--drop-bottom', '86%');
 				drop.classList.add('blue','full');
+				drop.classList.remove('green');
 				meterInner.classList.add('full');
 				meterFill.classList.add('full');
 				percentText.classList.add('full');
@@ -227,7 +237,7 @@
 				const dropOffsetPct = 6;
 				const dropBottom = Math.max(0, p - dropOffsetPct);
 				drop.style.setProperty('--drop-bottom', dropBottom + '%');
-				drop.classList.remove('blue','full');
+				drop.classList.remove('blue','green','full');
 				meterInner.classList.remove('full');
 				meterFill.classList.remove('full');
 				percentText.classList.remove('full');
@@ -238,11 +248,7 @@
 			// Toggle disabled state for increment buttons individually
 			incButtons.forEach(b => {
 				const delta = parseInt(b.textContent.replace('+', ''));
-				if (p + delta > 100) {
-					b.setAttribute('disabled', '');
-				} else {
-					b.removeAttribute('disabled');
-				}
+				b.removeAttribute('disabled');
 			});
 			// Toggle disabled state for decrement buttons individually
 			decButtons.forEach(b => {

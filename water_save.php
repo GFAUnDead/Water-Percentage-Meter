@@ -41,7 +41,7 @@ if ($method === 'POST'){
         exit;
     }
     $percent = (int)$input['percent'];
-    if ($percent < 0 || $percent > 100){
+    if ($percent < 0 || $percent > 1000){
         http_response_code(400);
         echo json_encode(['error' => 'percent out of range']);
         exit;
