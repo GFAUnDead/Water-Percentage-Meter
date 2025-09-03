@@ -17,15 +17,15 @@
 		body{
 			margin:0; font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 			background: #00ff00;
-			color: #d9eef8; display:flex; align-items:center; justify-content:center; padding:0; min-height:100vh;
+			color: #d9eef8; padding:0; min-height:100vh; min-width:360px; position:relative;
 		}
 		.panel{
-			width:360px; max-width:94vw; padding:22px; border-radius:16px;
+			width:360px; padding:22px; border-radius:16px;
 			background: transparent;
 			box-shadow: none;
 			backdrop-filter: none;
 			border: none;
-			margin:auto;
+			position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
 		}
 		.meter-wrap{display:flex; gap:20px; align-items:center; margin-top:18px}
 		.meter{
@@ -110,8 +110,8 @@
 		.meta{margin-top:12px; font-size:12px; color:var(--muted)}
 		.sr-only{position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
 		/* Modal styles */
-		.modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
-		.modal-content { background-color: var(--panel); margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 16px; position: relative; }
+		.modal { display: none; position: absolute; z-index: 10; top: 0; left: 114px; width: calc(100% - 114px); height: 100%; background-color: transparent; }
+		.modal-content { background-color: var(--panel); margin: 10% auto; padding: 20px; border: 1px solid #888; width: 240px; border-radius: 16px; position: relative; }
 		.close { color: var(--muted); float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
 		.close:hover { color: var(--accent); }
 		#pastTable { width: 100%; border-collapse: collapse; margin-top: 10px; }
