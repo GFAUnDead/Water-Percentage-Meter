@@ -149,6 +149,8 @@
 				<button id="inc5" class="primary inc-btn">+5</button>
 				<button id="inc" class="primary inc-btn">+10</button>
 				<button id="dec1" class="primary dec-btn">-1</button>
+				<button id="dec5" class="primary dec-btn">-5</button>
+				<button id="dec10" class="primary dec-btn">-10</button>
 				<button id="viewPast" class="primary">View Past</button>
 			</div>
 		</div>
@@ -183,6 +185,8 @@
 		const inc5 = document.getElementById('inc5');
 		const inc10 = document.getElementById('inc');
 		const dec1 = document.getElementById('dec1');
+		const dec5 = document.getElementById('dec5');
+		const dec10 = document.getElementById('dec10');
 		function clamp(v){ return Math.max(0, Math.min(100, Math.round(v))); }
 		let _saveTimeout = null;
 		function savePercentDebounced(p){
@@ -275,6 +279,8 @@
 		inc5.addEventListener('click', ()=> handleInc(5));
 		inc10.addEventListener('click', ()=> handleInc(10));
 		dec1.addEventListener('click', ()=> handleDec(1));
+		dec5.addEventListener('click', ()=> handleDec(5));
+		dec10.addEventListener('click', ()=> handleDec(10));
 		// View Past button
 		document.getElementById('viewPast').addEventListener('click', ()=>{
 			fetch('water_save.php?all=true').then(r => r.json()).then(data => {

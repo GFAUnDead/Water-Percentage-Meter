@@ -6,7 +6,7 @@ A simple, elegant web-based application for tracking daily water intake percenta
 
 - **Visual Water Meter**: Animated meter that fills up as you track your water intake
 - **Dual Percentage Display**: Current level shown both inside the meter tube and above the controls
-- **Easy Controls**: Buttons to increment (+1, +5, +10) or decrement (-1) your water intake
+- **Easy Controls**: Buttons to increment (+1, +5, +10) or decrement (-1, -5, -10) your water intake
 - **Automatic Daily Reset**: Meter automatically resets to 0% at the start of each new day
 - **Real-time Sync**: Periodically checks and syncs with stored data to ensure consistency
 - **View Past Records**: Modal popup showing historical daily progress in a table format
@@ -31,7 +31,7 @@ A simple, elegant web-based application for tracking daily water intake percenta
 
 1. Open `water.php` in your web browser
 2. Use the +1, +5, or +10 buttons to increment your water intake percentage
-3. Use the -1 button to decrement if needed
+3. Use the -1, -5, or -10 buttons to decrement if needed
 4. The meter will visually fill up and animate accordingly
 5. Your progress is automatically saved for the current day
 6. The current percentage is displayed both inside the meter tube and above the buttons
