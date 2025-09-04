@@ -91,8 +91,8 @@
 		.drop .outline{fill:none; stroke:rgba(255,255,255,0.85); stroke-width:1.6; transition:stroke 300ms ease}
 		.drop.blue .fill{fill:var(--accent)}
 		.drop.blue .outline{stroke:rgba(0,110,180,0.95)}
-		.drop.green .fill{fill:#00ff00}
-		.drop.green .outline{stroke:#008000}
+		.drop.over .fill{fill:#ffd700}
+		.drop.over .outline{stroke:#b8860b}
 		.drop.small{transform:translateX(-50%) scale(0.92)}
 		.drop.full{ transform: translateX(-50%) translateY(-2px) scale(1.04) }
 		.controls{flex:1}
@@ -221,7 +221,7 @@
 			meterInner.style.setProperty('--fill', Math.min(p, 100) + '%');
 					if(p > 100){
 					drop.style.setProperty('--drop-bottom', '86%');
-				drop.classList.add('green','full');
+				drop.classList.add('over','full');
 				drop.classList.remove('blue');
 				meterInner.classList.add('full');
 				meterFill.classList.add('full');
@@ -229,7 +229,7 @@
 			} else if(p >= 100){
 				drop.style.setProperty('--drop-bottom', '86%');
 				drop.classList.add('blue','full');
-				drop.classList.remove('green');
+				drop.classList.remove('over');
 				meterInner.classList.add('full');
 				meterFill.classList.add('full');
 				percentText.classList.add('full');
@@ -237,7 +237,7 @@
 				const dropOffsetPct = 6;
 				const dropBottom = Math.max(0, p - dropOffsetPct);
 				drop.style.setProperty('--drop-bottom', dropBottom + '%');
-				drop.classList.remove('blue','green','full');
+				drop.classList.remove('blue','over','full');
 				meterInner.classList.remove('full');
 				meterFill.classList.remove('full');
 				percentText.classList.remove('full');
