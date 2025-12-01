@@ -605,8 +605,6 @@
 		})();
 		// Start the application when DOM is ready
 		document.addEventListener('DOMContentLoaded', WaterMeter.init);
-		// Also try immediate init in case DOM is already loaded
-		WaterMeter.init();
 	</script>
 </body>
 </html>
