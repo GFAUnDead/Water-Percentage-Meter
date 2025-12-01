@@ -402,6 +402,7 @@
 				PERCENT_THRESHOLD_LOW: 20,
 				PERCENT_THRESHOLD_VERY_LOW: 0,
 			};
+			const getLocalDateKey = () => new Date().toISOString().split('T')[0];
 			// DOM elements cache
 			const DOM = {
 				meterFill: document.getElementById('meterFill'),
@@ -420,6 +421,7 @@
 			let state = {
 				saveTimeout: null,
 				dropAnimationTimeout: null,
+				currentLocalDate: getLocalDateKey(),
 			};
 			const clamp = (value) => {
 				return Math.max(0, Math.min(Math.round(value), CONFIG.MAX_PERCENT));
@@ -512,6 +514,16 @@
 				// Persist the change
 				savePercentDebounced(percent);
 			};
+			const ensureMidnightReset = () => {
+				const today = getLocalDateKey();
+				if (today !== state.currentLocalDate) {
+					state.currentLocalDate = today;
+					const currentLevel = Number(DOM.percentText.textContent.replace('%', '')) || 0;
+					if (currentLevel !== 0) {
+						setLevel(0);
+					}
+				}
+			};
 			const handleIncrement = (delta) => {
 				const currentPercent = Number(DOM.percentText.textContent.replace('%', '')) || 0;
 				setLevel(currentPercent + delta);
@@ -550,6 +562,7 @@
 				DOM.modal.style.display = 'none';
 			};
 			const checkDateAndSync = () => {
+				ensureMidnightReset();
 				fetch('water_save.php')
 					.then((response) => response.json())
 					.then((data) => {
@@ -596,7 +609,7 @@
 						closeModal();
 					}
 				});
-				// Check date and sync every minute
+				// Check date and sync every few seconds
 				setInterval(checkDateAndSync, CONFIG.CHECK_INTERVAL);
 			};
 			const init = () => {
