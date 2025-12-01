@@ -286,22 +286,28 @@
 		/* Modal styles */
 		.modal {
 			display: none;
-			position: absolute;
-			z-index: 10;
+			position: fixed;
+			z-index: 1000;
 			top: 0;
-			left: 114px;
-			width: calc(100% - 114px);
+			left: 0;
+			width: 100%;
 			height: 100%;
-			background-color: transparent;
+			background: rgba(0, 0, 0, 0.35);
+			backdrop-filter: blur(6px);
+			align-items: center;
+			justify-content: center;
+			padding: 16px;
 		}
 		.modal-content {
 			background-color: var(--panel);
-			margin: 10% auto;
-			padding: 20px;
-			border: 1px solid #888;
-			width: 240px;
-			border-radius: 16px;
+			padding: 24px;
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 18px;
 			position: relative;
+			width: min(480px, 100% - 32px);
+			max-height: min(80vh, 600px);
+			overflow-y: auto;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 		}
 		.close {
 			color: var(--muted);
@@ -533,7 +539,7 @@
 								row.insertCell(0).textContent = date;
 								row.insertCell(1).textContent = `${percent}%`;
 							});
-							DOM.modal.style.display = 'block';
+							DOM.modal.style.display = 'flex';
 						}
 					})
 					.catch(() => {
