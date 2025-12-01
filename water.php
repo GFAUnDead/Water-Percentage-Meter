@@ -76,9 +76,9 @@
 		}
 		.meter-percentage {
 			position: absolute;
-			bottom: 10px;
+			top: 50%;
 			left: 50%;
-			transform: translateX(-50%);
+			transform: translate(-50%, -50%);
 			color: rgba(255, 255, 255, 0.8);
 			font-size: 12px;
 			font-weight: bold;
@@ -438,19 +438,6 @@
 					});
 				}, CONFIG.SAVE_DELAY);
 			};
-			const updatePercentagePosition = (percent) => {
-				if (percent === CONFIG.PERCENT_THRESHOLD_VERY_LOW) {
-					DOM.meterPercentage.style.bottom = '50%';
-					DOM.meterPercentage.style.transform = 'translateX(-50%) translateY(50%)';
-				} else if (percent < CONFIG.PERCENT_THRESHOLD_LOW) {
-					const bottom = Math.max(percent + 5, 15);
-					DOM.meterPercentage.style.bottom = `${bottom}px`;
-					DOM.meterPercentage.style.transform = 'translateX(-50%)';
-				} else {
-					DOM.meterPercentage.style.bottom = `${percent - 8}px`;
-					DOM.meterPercentage.style.transform = 'translateX(-50%)';
-				}
-			};
 			const updateDropState = (percent) => {
 				if (percent > CONFIG.PERCENT_THRESHOLD_FULL) {
 					// Over 100%
@@ -504,7 +491,6 @@
 				DOM.percentText.textContent = `${percent}%`;
 				DOM.meterPercentage.textContent = `${percent}%`;
 				// Update positions and heights
-				updatePercentagePosition(percent);
 				DOM.meterFill.style.height = `${Math.min(percent, 100)}%`;
 				DOM.meterInner.style.setProperty('--fill', `${Math.min(percent, 100)}%`);
 				// Update visual states
