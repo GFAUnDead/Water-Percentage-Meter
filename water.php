@@ -1,3 +1,55 @@
+<?php
+// Quick API: support ?bot (plain), ?bot=json, ?bot=xml — also honor Accept header
+if (isset($_GET['bot'])) {
+    date_default_timezone_set('Australia/Sydney');
+    $storePath = __DIR__ . '/water_state.json';
+    $today = date('Y-m-d');
+    $percent = 0;
+    if (file_exists($storePath)) {
+        $raw = file_get_contents($storePath);
+        if ($raw !== false) {
+            $data = json_decode($raw, true);
+            if (is_array($data) && array_key_exists($today, $data)) {
+                $percent = (int)$data[$today];
+            }
+        }
+    }
+
+    // Determine requested format: explicit ?bot=value preferred, then Accept header, default to plain text
+    $requested = strtolower(trim((string)$_GET['bot']));
+    if ($requested === '') {
+        // empty value (e.g. ?bot) -> try Accept header
+        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+        if (strpos($accept, 'application/json') !== false) {
+            $requested = 'json';
+        } elseif (strpos($accept, 'application/xml') !== false || strpos($accept, 'text/xml') !== false) {
+            $requested = 'xml';
+        } else {
+            $requested = 'text';
+        }
+    }
+
+    if ($requested === 'json') {
+        header('Content-Type: application/json');
+        echo json_encode(['date' => $today, 'percent' => $percent]);
+        exit;
+    }
+
+    if ($requested === 'xml') {
+        header('Content-Type: application/xml');
+        $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+        $xml .= "<water><date>" . htmlspecialchars($today) . "</date><percent>" . (int)$percent . "</percent></water>";
+        echo $xml;
+        exit;
+    }
+
+    // default / unknown formats -> plain text (backwards compatible)
+    header('Content-Type: text/plain');
+    echo (int)$percent;
+    exit;
+}
+?>
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -552,32 +604,36 @@
 				fetch('water_save.php')
 					.then((response) => response.json())
 					.then((data) => {
-						if (data) {
-							const currentLevel = Number(DOM.percentText.textContent.replace('%', '')) || 0;
-							if (data.date !== data.current_date) {
-								// New day, reset to 0
-								setLevel(0);
-							} else if (typeof data.percent === 'number' && currentLevel !== data.percent) {
-								// Sync with saved level
-								setLevel(data.percent);
-							}
+						if (!data) return;
+						const serverDate = data.current_date || data.date || getLocalDateKey();
+						const serverPercent = (typeof data.percent === 'number') ? data.percent : null;
+						// If server date advanced, update stored date and reset/display the new day's value (server may return null)
+						if (serverDate !== state.currentLocalDate) {
+							state.currentLocalDate = serverDate;
+							setLevel(serverPercent || 0);
+							return;
+						}
+						// Otherwise sync percent if it differs
+						const uiPercent = Number(DOM.percentText.textContent.replace('%', '')) || 0;
+						if (serverPercent !== null && serverPercent !== uiPercent) {
+							setLevel(serverPercent);
 						}
 					})
 					.catch(() => {
-						// Handle error silently
+						// Keep UI as-is on error
 					});
 			};
 			const initializeLevel = () => {
 				fetch('water_save.php')
 					.then((response) => response.json())
 					.then((data) => {
-						if (data && data.date === data.current_date && typeof data.percent === 'number') {
-							setLevel(data.percent);
-						} else {
-							setLevel(0);
-						}
+						const serverDate = (data && (data.current_date || data.date)) ? (data.current_date || data.date) : getLocalDateKey();
+						const serverPercent = (data && typeof data.percent === 'number') ? data.percent : 0;
+						state.currentLocalDate = serverDate;
+						setLevel(serverPercent || 0);
 					})
 					.catch(() => {
+						state.currentLocalDate = getLocalDateKey();
 						setLevel(0);
 					});
 			};
