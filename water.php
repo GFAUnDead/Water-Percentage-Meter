@@ -18,15 +18,8 @@ if (isset($_GET['bot'])) {
     // Determine requested format: explicit ?bot=value preferred, then Accept header, default to plain text
     $requested = strtolower(trim((string)$_GET['bot']));
     if ($requested === '') {
-        // empty value (e.g. ?bot) -> try Accept header
-        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
-        if (strpos($accept, 'application/json') !== false) {
-            $requested = 'json';
-        } elseif (strpos($accept, 'application/xml') !== false || strpos($accept, 'text/xml') !== false) {
-            $requested = 'xml';
-        } else {
-            $requested = 'text';
-        }
+        // empty value (e.g. ?bot) -> default to plain text regardless of Accept header
+        $requested = 'text';
     }
 
     if ($requested === 'json') {
@@ -45,7 +38,7 @@ if (isset($_GET['bot'])) {
 
     // default / unknown formats -> plain text (backwards compatible)
     header('Content-Type: text/plain');
-    echo (int)$percent;
+    echo (int)$percent . '%';
     exit;
 }
 ?>
