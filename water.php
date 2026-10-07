@@ -467,6 +467,8 @@ if (isset($_GET['bot'])) {
 				saveTimeout: null,
 				dropAnimationTimeout: null,
 				currentLocalDate: getLocalDateKey(),
+				editVersion: 0,
+				savesInFlight: 0,
 			};
 			const clamp = (value) => {
 				return Math.max(0, Math.min(Math.round(value), CONFIG.MAX_PERCENT));
@@ -474,15 +476,21 @@ if (isset($_GET['bot'])) {
 			const savePercentDebounced = (percent) => {
 				clearTimeout(state.saveTimeout);
 				state.saveTimeout = setTimeout(() => {
+					state.saveTimeout = null;
+					state.savesInFlight++;
 					fetch('water_save.php', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({ percent }),
 					}).catch(() => {
 						// Fail silently - server may be temporarily unavailable
+					}).finally(() => {
+						state.savesInFlight--;
 					});
 				}, CONFIG.SAVE_DELAY);
 			};
+			// True while a local change is waiting to be saved or is still being saved
+			const hasUnsavedChanges = () => state.saveTimeout !== null || state.savesInFlight > 0;
 			const updateDropState = (percent) => {
 				if (percent > CONFIG.PERCENT_THRESHOLD_FULL) {
 					// Over 100%
@@ -530,7 +538,7 @@ if (isset($_GET['bot'])) {
 					CONFIG.SCALE_ANIMATION_DURATION
 				);
 			};
-			const setLevel = (targetPercent) => {
+			const setLevel = (targetPercent, { persist = true } = {}) => {
 				const percent = clamp(targetPercent);
 				// Update display
 				DOM.percentText.textContent = `${percent}%`;
@@ -542,8 +550,11 @@ if (isset($_GET['bot'])) {
 				updateDropState(percent);
 				updateMeterClasses(percent);
 				updateButtonStates(percent);
-				// Persist the change
-				savePercentDebounced(percent);
+				// Persist the change (skipped when we're just mirroring the server)
+				if (persist) {
+					state.editVersion++;
+					savePercentDebounced(percent);
+				}
 			};
 			const ensureMidnightReset = () => {
 				const today = getLocalDateKey();
@@ -594,22 +605,27 @@ if (isset($_GET['bot'])) {
 			};
 			const checkDateAndSync = () => {
 				ensureMidnightReset();
+				// Don't let a server read clobber a change that hasn't been saved yet
+				if (hasUnsavedChanges()) return;
+				const editVersionAtRequest = state.editVersion;
 				fetch('water_save.php')
 					.then((response) => response.json())
 					.then((data) => {
 						if (!data) return;
+						// The user changed the level while this request was in flight, so the response is stale
+						if (state.editVersion !== editVersionAtRequest || hasUnsavedChanges()) return;
 						const serverDate = data.current_date || data.date || getLocalDateKey();
 						const serverPercent = (typeof data.percent === 'number') ? data.percent : null;
 						// If server date advanced, update stored date and reset/display the new day's value (server may return null)
 						if (serverDate !== state.currentLocalDate) {
 							state.currentLocalDate = serverDate;
-							setLevel(serverPercent || 0);
+							setLevel(serverPercent || 0, { persist: false });
 							return;
 						}
 						// Otherwise sync percent if it differs
 						const uiPercent = Number(DOM.percentText.textContent.replace('%', '')) || 0;
 						if (serverPercent !== null && serverPercent !== uiPercent) {
-							setLevel(serverPercent);
+							setLevel(serverPercent, { persist: false });
 						}
 					})
 					.catch(() => {
@@ -623,7 +639,7 @@ if (isset($_GET['bot'])) {
 						const serverDate = (data && (data.current_date || data.date)) ? (data.current_date || data.date) : getLocalDateKey();
 						const serverPercent = (data && typeof data.percent === 'number') ? data.percent : 0;
 						state.currentLocalDate = serverDate;
-						setLevel(serverPercent || 0);
+						setLevel(serverPercent || 0, { persist: false });
 					})
 					.catch(() => {
 						state.currentLocalDate = getLocalDateKey();
