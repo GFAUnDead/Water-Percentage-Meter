@@ -447,7 +447,11 @@ if (isset($_GET['bot'])) {
 				PERCENT_THRESHOLD_LOW: 20,
 				PERCENT_THRESHOLD_VERY_LOW: 0,
 			};
-			const getLocalDateKey = () => new Date().toISOString().split('T')[0];
+			// Fallback only — the server's timezone is authoritative for "today"
+			const getLocalDateKey = () => {
+				const d = new Date();
+				return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+			};
 			// DOM elements cache
 			const DOM = {
 				meterFill: document.getElementById('meterFill'),
@@ -556,16 +560,6 @@ if (isset($_GET['bot'])) {
 					savePercentDebounced(percent);
 				}
 			};
-			const ensureMidnightReset = () => {
-				const today = getLocalDateKey();
-				if (today !== state.currentLocalDate) {
-					state.currentLocalDate = today;
-					const currentLevel = Number(DOM.percentText.textContent.replace('%', '')) || 0;
-					if (currentLevel !== 0) {
-						setLevel(0);
-					}
-				}
-			};
 			const handleIncrement = (delta) => {
 				const currentPercent = Number(DOM.percentText.textContent.replace('%', '')) || 0;
 				setLevel(currentPercent + delta);
@@ -604,7 +598,7 @@ if (isset($_GET['bot'])) {
 				DOM.modal.style.display = 'none';
 			};
 			const checkDateAndSync = () => {
-				ensureMidnightReset();
+				// Day rollover is handled by the server date check below
 				// Don't let a server read clobber a change that hasn't been saved yet
 				if (hasUnsavedChanges()) return;
 				const editVersionAtRequest = state.editVersion;
@@ -642,8 +636,9 @@ if (isset($_GET['bot'])) {
 						setLevel(serverPercent || 0, { persist: false });
 					})
 					.catch(() => {
+						// Don't write 0 over the saved value just because the load failed
 						state.currentLocalDate = getLocalDateKey();
-						setLevel(0);
+						setLevel(0, { persist: false });
 					});
 			};
 			const bindEvents = () => {
